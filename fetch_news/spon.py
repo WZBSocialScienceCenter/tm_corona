@@ -3,6 +3,7 @@ import re
 import pickle
 import json
 import logging
+import signal
 from datetime import datetime, timedelta, time
 from collections import defaultdict
 
@@ -11,9 +12,10 @@ from bs4 import BeautifulSoup
 
 
 ARCHIVE_URL_FORMAT = 'https://www.spiegel.de/nachrichtenarchiv/artikel-{:02d}.{:02d}.{}.html'
-START_DATE = datetime(2019, 12, 15)
+START_DATE = datetime(2019, 10, 1)
+END_DATE = datetime(2019, 10, 2)
 #END_DATE = datetime.today()
-END_DATE = datetime(2019, 12, 16)
+#END_DATE = datetime(2020, 7, 31)
 REQUEST_TIMEOUT_SEC = 15
 ARCHIVE_CACHE = 'cache/spon_archive.pickle'
 ARTICLES_CACHE = 'cache/spon_articles.pickle'
@@ -22,6 +24,8 @@ OUTPUT_JSON = 'data/spon.json'
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('spon')
+
+abort_script = False
 duration = END_DATE - START_DATE
 pttrn_time = re.compile(r'(\d+).(\d{2})\s+Uhr$')
 
@@ -66,6 +70,18 @@ def error(msg, obj, key=None):
         obj[key].append({'error_message': msg})
 
 
+def handle_abort(signum, frame):
+    global abort_script
+    print('received signal %d – aborting script...' % signum)
+    abort_script = True
+
+
+for signame in ('SIGINT', 'SIGHUP', 'SIGTERM'):
+    sig = getattr(signal, signame, None)
+    if sig is not None:
+        signal.signal(sig, handle_abort)
+
+
 #%%
 
 archive_rows = load_data_from_pickle(ARCHIVE_CACHE, defaultdict(list))
@@ -73,6 +89,9 @@ archive_rows = load_data_from_pickle(ARCHIVE_CACHE, defaultdict(list))
 logger.info('fetching headlines and article URLs from archive')
 
 for day in range(duration.days):
+    if abort_script:
+        break
+
     fetch_date = START_DATE + timedelta(days=day)
     fetch_date_str = fetch_date.date().isoformat()
     logger.info('> [%d/%d]: %s' % (day+1, duration.days, fetch_date_str))
@@ -152,32 +171,42 @@ for day in range(duration.days):
 
     store_pickle(archive_rows, ARCHIVE_CACHE, 'archive headlines and article URLs')
 
-store_pickle(archive_rows, ARCHIVE_CACHE, 'archive headlines and article URLs')
+if not abort_script:
+    store_pickle(archive_rows, ARCHIVE_CACHE, 'archive headlines and article URLs')
 
 #%%
 
-articles_data = load_data_from_pickle(ARTICLES_CACHE, archive_rows)
+articles_data = load_data_from_pickle(ARTICLES_CACHE, defaultdict(dict))
 
 logger.info('fetching article texts')
 
-for day, (fetch_date, day_articles) in enumerate(articles_data.items()):
-    logger.info('> [%d/%d]: %s' % (day+1, len(articles_data), fetch_date))
+for day, (fetch_date, day_articles) in enumerate(archive_rows.items()):
+    if abort_script:
+        break
+
+    logger.info('> [%d/%d]: %s' % (day+1, len(archive_rows), fetch_date))
 
     for i_art, art in enumerate(day_articles):
+        if abort_script:
+            break
+
+        logger.info('>> [%d/%d]: %s' % (i_art + 1, len(day_articles), art['url']))
+
+        if not art['url'].startswith('https://www.spiegel.de'):
+            logging.info('>> skipping URL that does not refer to SPON')
+            continue
         if 'error_message' in art.keys():
             logger.info('>> skipping because of error when scraping archive: %s' % art['error_message'])
             continue
-        if 'paragraphs' in art.keys():
+        if art['url'] in articles_data[fetch_date]:
             logger.info('>> skipping because this article was already scraped')
             continue
-
-        logger.info('>> [%d/%d]: querying %s' % (i_art+1, len(day_articles), art['url']))
 
         try:
             resp = requests.get(art['url'], timeout=REQUEST_TIMEOUT_SEC)
         except IOError:
             error('>> IO error on request', art)
-            articles_data[fetch_date][i_art] = art
+            articles_data[fetch_date][art['url']] = art
             continue
 
         if resp.ok:
@@ -216,13 +245,13 @@ for day, (fetch_date, day_articles) in enumerate(articles_data.items()):
                     if author_elem:
                         author = elem_text(author_elem)
 
-            if not author:
-                logger.warning('>> no author element found')
+            # if not author:   # this is quite common
+            #     logger.warning('>> no author element found')
 
             body_elem = article.find_all('div', attrs={'data-article-el': 'body'})
             if len(body_elem) != 1:
                 error('>> no valid article body element found', art)
-                articles_data[fetch_date][i_art] = art
+                articles_data[fetch_date][art['url']] = art
                 continue
 
             body_elem = body_elem[0]
@@ -244,21 +273,27 @@ for day, (fetch_date, day_articles) in enumerate(articles_data.items()):
                 'paragraphs': body_pars
             })
 
-            articles_data[fetch_date][i_art] = art
+            articles_data[fetch_date][art['url']] = art
         else:
             error('>> response not OK', art)
-            articles_data[fetch_date][i_art] = art
+            articles_data[fetch_date][art['url']] = art
             continue
 
         store_pickle(articles_data, ARTICLES_CACHE, 'scraped articles')
 
-store_pickle(articles_data, ARTICLES_CACHE, 'scraped articles')
-
 #%%
 
-logger.info('will store result to %s' % OUTPUT_JSON)
+if not abort_script:
+    store_pickle(articles_data, ARTICLES_CACHE, 'scraped articles')
 
-with open(OUTPUT_JSON, 'w') as f:
-    json.dump(articles_data, f)
+    logger.info('will store result to %s' % OUTPUT_JSON)
 
-logger.info('done.')
+    articles_list = []
+    for art_day in articles_data.values():
+        articles_list.extend(art_day.values())
+    del articles_data
+
+    with open(OUTPUT_JSON, 'w') as f:
+        json.dump(articles_list, f)
+
+    logger.info('done.')
