@@ -1,6 +1,7 @@
 import os
 import re
 import pickle
+import json
 import logging
 from datetime import datetime, timedelta, time
 from collections import defaultdict
@@ -15,6 +16,9 @@ START_DATE = datetime(2019, 12, 15)
 END_DATE = datetime(2019, 12, 16)
 REQUEST_TIMEOUT_SEC = 15
 ARCHIVE_CACHE = 'cache/spon_archive.pickle'
+ARTICLES_CACHE = 'cache/spon_articles.pickle'
+OUTPUT_JSON = 'data/spon.json'
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('spon')
@@ -45,6 +49,23 @@ def store_pickle(data, fname, message_label='', rotate_files=True):
         pickle.dump(data, f)
 
 
+def elem_text(elem):
+    t = elem.text
+    for substr, repl in [('Icon: Spiegel Plus', ''), ('\xa0', ' ')]:
+        t = t.replace(substr, repl)
+    return t.strip()
+
+
+def error(msg, obj, key=None):
+    logger.error(msg)
+
+    msg = msg.lstrip(' >')
+    if key is None:
+        obj['error_message'] = msg
+    else:
+        obj[key].append({'error_message': msg})
+
+
 #%%
 
 archive_rows = load_data_from_pickle(ARCHIVE_CACHE, defaultdict(list))
@@ -53,20 +74,22 @@ logger.info('fetching headlines and article URLs from archive')
 
 for day in range(duration.days):
     fetch_date = START_DATE + timedelta(days=day)
-    logger.info('> [%d/%d]: %s' % (day+1, duration.days, str(fetch_date.date())))
+    fetch_date_str = fetch_date.date().isoformat()
+    logger.info('> [%d/%d]: %s' % (day+1, duration.days, fetch_date_str))
 
-    if fetch_date in archive_rows.keys():
+    if fetch_date_str in archive_rows.keys() \
+            and len(archive_rows[fetch_date_str]) > 0 \
+            and 'error_message' not in archive_rows[fetch_date_str][0].keys():
         logger.info('>> already fetched this date – skipping')
         continue
 
     archive_url = ARCHIVE_URL_FORMAT.format(fetch_date.day, fetch_date.month, fetch_date.year)
-
     logger.info('>> querying %s' % archive_url)
 
     try:
         resp = requests.get(archive_url, timeout=REQUEST_TIMEOUT_SEC)
     except IOError:
-        logger.warning('>> IO error on request')
+        error('>> IO error on request', archive_rows, fetch_date_str)
         continue
 
     if resp.ok:
@@ -85,7 +108,7 @@ for day in range(duration.days):
                     headline = hcont.select_one('h2 a').attrs.get('title', '')
 
                     if not headline:
-                        logger.warning('>> no headline given')
+                        error('>> no headline given', archive_rows, fetch_date_str)
                         continue
 
                     headline = headline.replace('\xa0', ' ')
@@ -106,20 +129,136 @@ for day in range(duration.days):
                         else:
                             logger.warning('>> no publication time given')
 
-                        articlecateg = hfoot[2].text.strip()
+                        articlecateg = elem_text(hfoot[2])
                     else:
-                        logger.warning('>> no URL in headline link')
+                        error('>> no URL in headline link', archive_rows, fetch_date_str)
+                        continue
 
-                    archive_rows[fetch_date].append([headline, url, articlecateg, fetch_date.date(), pub_time])
+                    archive_rows[fetch_date_str].append({
+                        'archive_headline': headline,
+                        'url': url,
+                        'archive_retrieved': datetime.today().isoformat(timespec='seconds'),
+                        'categ': articlecateg,
+                        'pub_date': fetch_date_str,
+                        'pub_time': pub_time.isoformat()
+                    })
         else:
-            logger.warning('>> unexpected number of elements in main container: %d' % len(container))
+            error('>> unexpected number of elements in main container: %d' % len(container),
+                  archive_rows, fetch_date_str)
     else:
-        logger.warning('>> response not OK')
+        error('>> response not OK', archive_rows, fetch_date_str)
 
-    logger.info('>> got %d headlines with URLs for this day' % len(archive_rows[fetch_date]))
+    logger.info('>> got %d headlines with URLs for this day' % len(archive_rows[fetch_date_str]))
 
     store_pickle(archive_rows, ARCHIVE_CACHE, 'archive headlines and article URLs')
 
+store_pickle(archive_rows, ARCHIVE_CACHE, 'archive headlines and article URLs')
+
 #%%
 
+articles_data = load_data_from_pickle(ARTICLES_CACHE, archive_rows)
+
 logger.info('fetching article texts')
+
+for day, (fetch_date, day_articles) in enumerate(articles_data.items()):
+    logger.info('> [%d/%d]: %s' % (day+1, len(articles_data), fetch_date))
+
+    for i_art, art in enumerate(day_articles):
+        if 'error_message' in art.keys():
+            logger.info('>> skipping because of error when scraping archive: %s' % art['error_message'])
+            continue
+        if 'paragraphs' in art.keys():
+            logger.info('>> skipping because this article was already scraped')
+            continue
+
+        logger.info('>> [%d/%d]: querying %s' % (i_art+1, len(day_articles), art['url']))
+
+        try:
+            resp = requests.get(art['url'], timeout=REQUEST_TIMEOUT_SEC)
+        except IOError:
+            error('>> IO error on request', art)
+            articles_data[fetch_date][i_art] = art
+            continue
+
+        if resp.ok:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+
+            if len(soup.find_all('div', attrs={'data-galleryteaser-el': 'galleryActivator'})) > 0:
+                article = soup
+            else:
+                article = soup.select_one('main article')
+
+            topline_headline = article.select('header h2 span')
+            if len(topline_headline) < 2:
+                logger.warning('>> no valid top line / headline elements')
+                topline = None
+                headline = None
+            else:
+                topline = elem_text(topline_headline[0])
+                headline = elem_text(topline_headline[1])
+
+            intro_elem = article.select_one('header div.leading-loose')
+            author = None
+            if intro_elem:
+                intro = elem_text(intro_elem)
+                author_elem = intro_elem.find_next('div')
+                if author_elem:
+                    author_elem = author_elem.select_one('a')
+                    if author_elem:
+                        author = elem_text(author_elem)
+            else:
+                intro = None
+                logger.warning('>> no valid intro element found')
+
+                author_elem = article.select_one('header h2').find_next('div')
+                if author_elem:
+                    author_elem = author_elem.select_one('a')
+                    if author_elem:
+                        author = elem_text(author_elem)
+
+            if not author:
+                logger.warning('>> no author element found')
+
+            body_elem = article.find_all('div', attrs={'data-article-el': 'body'})
+            if len(body_elem) != 1:
+                error('>> no valid article body element found', art)
+                articles_data[fetch_date][i_art] = art
+                continue
+
+            body_elem = body_elem[0]
+            body_pars = [elem_text(p_elem) for p_elem in body_elem.select('div.RichText p')]
+            if not body_pars:   # some articles use "section" instead of "div"
+                body_pars = [elem_text(p_elem) for p_elem in body_elem.select('section.RichText p')]
+
+            logger.info('>> fetched %d paragraphs' % len(body_pars))
+
+            if not intro and len(body_pars) > 0:
+                intro = body_pars.pop(0)
+
+            art.update({
+                'retrieved': datetime.today().isoformat(timespec='seconds'),
+                'topline': topline,
+                'headline': headline,
+                'author': author,
+                'intro': intro,
+                'paragraphs': body_pars
+            })
+
+            articles_data[fetch_date][i_art] = art
+        else:
+            error('>> response not OK', art)
+            articles_data[fetch_date][i_art] = art
+            continue
+
+        store_pickle(articles_data, ARTICLES_CACHE, 'scraped articles')
+
+store_pickle(articles_data, ARTICLES_CACHE, 'scraped articles')
+
+#%%
+
+logger.info('will store result to %s' % OUTPUT_JSON)
+
+with open(OUTPUT_JSON, 'w') as f:
+    json.dump(articles_data, f)
+
+logger.info('done.')
