@@ -4,6 +4,7 @@ import logging
 
 #from tmtoolkit.corpus import Corpus
 from tmtoolkit.preprocess import TMPreproc
+from tmtoolkit.utils import pickle_data
 
 logging.basicConfig(level=logging.INFO)
 tmtoolkit_log = logging.getLogger('tmtoolkit')
@@ -11,6 +12,7 @@ tmtoolkit_log.setLevel(logging.INFO)
 tmtoolkit_log.propagate = True
 
 INPUT_DATA = 'fetch_news/data/spon.json'
+OUTPUT_DTM = 'data/dtm.pickle'
 
 pttrn_urlend = re.compile(r'\.html?$')
 
@@ -64,6 +66,8 @@ print('tokenizing documents')
 preproc = TMPreproc(corpus, language='de')
 del corpus
 
+print('processing documents')
+
 preproc.pos_tag() \
     .lemmatize() \
     .tokens_to_lowercase() \
@@ -77,3 +81,17 @@ preproc.pos_tag() \
 preproc.print_summary()
 
 #%%
+
+print('generating DTM')
+
+dtm = preproc.dtm
+print(f'DTM shape: {dtm.shape}')
+
+#%%
+
+print('storing output DTM to {OUTPUT_DTM}')
+
+pickle_data((preproc.doc_labels, preproc.vocabulary, dtm), OUTPUT_DTM)
+
+print('done.')
+

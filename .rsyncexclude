@@ -1,0 +1,5 @@
+.git*
+.rsyncexclude
+.idea
+*~
+Makefile
