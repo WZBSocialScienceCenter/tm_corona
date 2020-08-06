@@ -197,7 +197,7 @@ for day, (fetch_date, day_articles) in enumerate(archive_rows.items()):
         if 'error_message' in art.keys():
             logger.info('>> skipping because of error when scraping archive: %s' % art['error_message'])
             continue
-        if art['url'] in articles_data[fetch_date]:
+        if art['url'] in articles_data[fetch_date] and 'error_message' not in articles_data[fetch_date][art['url']]:
             logger.info('>> skipping because this article was already scraped')
             continue
 
