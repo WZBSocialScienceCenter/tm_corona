@@ -46,7 +46,7 @@ for art in sponraw:
     doctext = '\n\n'.join([art['archive_headline'], art['intro'] or '', '\n\n'.join(art['paragraphs'])])
 
     if doclabel in corpus.keys():
-        print(f'> duplicate: {doclabel}')
+        print(f'> ignoring duplicate: {doclabel}')
     else:
         corpus[doclabel] = doctext
         assert doclabel not in meta.keys()
