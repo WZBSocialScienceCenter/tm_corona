@@ -66,6 +66,8 @@ print('tokenizing documents')
 preproc = TMPreproc(corpus, language='de')
 del corpus
 
+preproc.print_summary()
+
 print('processing documents')
 
 preproc.pos_tag() \
