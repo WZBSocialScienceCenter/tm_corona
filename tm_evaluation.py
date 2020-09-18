@@ -29,12 +29,12 @@ const_params = {
 print('constant parameters:')
 print(const_params)
 
-var_params = [{'n_topics': k, 'alpha': 1/k} for k in range(20, 151, 10)]
+var_params = [{'n_topics': k, 'alpha': 10.0/k} for k in range(20, 151, 10)]
 print('varying parameters:')
 pprint(var_params)
 
 metrics = list(AVAILABLE_METRICS)
-metrics.pop(metrics.index('loglikelihood'))
+#metrics.pop(metrics.index('loglikelihood'))
 print('used metrics:')
 print(metrics)
 
