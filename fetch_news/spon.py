@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 ARCHIVE_URL_FORMAT = 'https://www.spiegel.de/nachrichtenarchiv/artikel-{:02d}.{:02d}.{}.html'
 START_DATE = datetime(2019, 10, 1)
 #END_DATE = datetime(2019, 10, 3)
-END_DATE = datetime(2020, 7, 31)
+END_DATE = datetime(2020, 8, 31)
 REQUEST_TIMEOUT_SEC = 15
 ARCHIVE_CACHE = 'cache/spon_archive.pickle'
 ARTICLES_CACHE = 'cache/spon_articles.pickle'
