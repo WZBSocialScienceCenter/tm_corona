@@ -1,3 +1,5 @@
+import sys
+
 from pprint import pprint
 
 from tmtoolkit.topicmod.tm_lda import AVAILABLE_METRICS, evaluate_topic_models
@@ -7,8 +9,18 @@ from tmtoolkit.utils import unpickle_file, pickle_data
 
 
 INPUT_DTM = 'data/dtm.pickle'
-OUTPUT_EVAL_PLOT = 'plots/tm_eval.png'
-OUTPUT_EVAL_RESULTS = 'data/tm_eval_results.pickle'
+OUTPUT_EVAL_PLOT = 'plots/tm_eval_eta%s.png'
+OUTPUT_EVAL_RESULTS = 'data/tm_eval_results_eta%s.pickle'
+
+#%%
+
+if len(sys.argv) < 2:
+    print('must pass argument: eta')
+    exit(1)
+
+eta_str = sys.argv[1]
+eta = float(eta_str)
+print(f'will run evaluation with eta={eta}')
 
 #%%
 
@@ -21,20 +33,21 @@ print(f'loaded DTM with shape {dtm.shape} and {dtm.sum()} tokens')
 #%%
 
 const_params = {
-    'n_iter': 1500,
-    'eta': 0.1,       # "eta" aka "beta"
+    'n_iter': 2000,
+    'eta': eta,       # "eta" aka "beta"
     'random_state': 20200918  # to make results reproducible
 }
 
 print('constant parameters:')
 print(const_params)
 
-var_params = [{'n_topics': k, 'alpha': 10.0/k} for k in range(20, 151, 10)]
+#var_params = [{'n_topics': k, 'alpha': (eta*100)/k} for k in range(20, 201, 10) if (eta*100)/k < 1]
+var_params = [{'n_topics': k, 'alpha': 10.0/k} for k in list(range(20, 101, 20)) + [125, 150, 175, 200, 250, 300, 400, 500, 600, 800, 1000]]
 print('varying parameters:')
 pprint(var_params)
 
 metrics = list(AVAILABLE_METRICS)
-#metrics.pop(metrics.index('loglikelihood'))
+metrics.pop(metrics.index('loglikelihood'))
 print('used metrics:')
 print(metrics)
 
@@ -43,13 +56,14 @@ print(f'evaluating {len(var_params)} models...')
 eval_results = evaluate_topic_models(dtm,
                                      varying_parameters=var_params,
                                      constant_parameters=const_params,
-                                     return_models=True,
+                                     return_models=False,
                                      metric=metrics)
 
 #%%
 
-print(f'storing evaluation results to {OUTPUT_EVAL_RESULTS}')
-pickle_data(eval_results, OUTPUT_EVAL_RESULTS)
+eval_results_file = OUTPUT_EVAL_RESULTS % eta_str
+print(f'storing evaluation results to {eval_results_file}')
+pickle_data(eval_results, eval_results_file)
 
 #%%
 
@@ -57,7 +71,9 @@ eval_results_by_topics = results_by_parameter(eval_results, 'n_topics')
 
 fig, axes = plot_eval_results(eval_results_by_topics)
 #fig.show()
-print(f'storing evaluation results plot to {OUTPUT_EVAL_PLOT}')
-fig.savefig(OUTPUT_EVAL_PLOT)
+
+eval_plot_file = OUTPUT_EVAL_PLOT % eta_str
+print(f'storing evaluation results plot to {eval_plot_file}')
+fig.savefig(eval_plot_file)
 
 print('done.')

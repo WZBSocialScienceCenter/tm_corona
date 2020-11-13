@@ -3,3 +3,6 @@
 **/__pycache__
 *.pyc
 *~
+.ipynb_checkpoints/
+data/tm_final_results.pickle
+logs

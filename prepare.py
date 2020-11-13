@@ -75,8 +75,8 @@ preproc.pos_tag() \
     .tokens_to_lowercase() \
     .remove_special_chars_in_tokens() \
     .clean_tokens(remove_shorter_than=2, remove_numbers=True) \
-    .remove_common_tokens(df_threshold=0.9) \
-    .remove_uncommon_tokens(df_threshold=0.05)
+    .remove_common_tokens(df_threshold=0.95) \
+    .remove_uncommon_tokens(df_threshold=0.01)
 
 #%%
 
