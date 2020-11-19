@@ -13,6 +13,7 @@ tmtoolkit_log.propagate = True
 
 INPUT_DATA = 'fetch_news/data/spon.json'
 OUTPUT_DTM = 'data/dtm.pickle'
+OUTPUT_META = 'data/meta.pickle'
 
 pttrn_urlend = re.compile(r'\.html?$')
 
@@ -92,8 +93,9 @@ print(f'DTM shape: {dtm.shape}')
 #%%
 
 print('storing output DTM to {OUTPUT_DTM}')
-
 pickle_data((preproc.doc_labels, preproc.vocabulary, dtm), OUTPUT_DTM)
 
-print('done.')
+print(f'storing corpus metadata to {OUTPUT_META}')
+pickle_data(meta, OUTPUT_META)
 
+print('done.')
