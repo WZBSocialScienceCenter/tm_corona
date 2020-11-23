@@ -16286,6 +16286,7 @@ Length: 335, dtype: float64</pre>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts_covid19topics</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ts_covid19topics</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;share of COVID-19 related topics&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;COVID-19 related topics in SPON corpus over time&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;plots/covidtopics_time.png&#39;</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">;</span>
 </pre></div>
 
@@ -16926,6 +16927,7 @@ Length: 335, dtype: float64</pre>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;daily cases in Germany&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;share of COVID-19 related topics&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;COVID-19 infection rate in Germany and share of COVID-19 topics in SPON corpus&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;plots/covidrate_topics_germany.png&#39;</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">;</span>
 </pre></div>
 
@@ -17021,7 +17023,7 @@ Length: 335, dtype: float64</pre>
   <th>Date:</th>             <td>Mon, 23 Nov 2020</td> <th>  Prob (F-statistic):</th> <td>7.71e-61</td>
 </tr>
 <tr>
-  <th>Time:</th>                 <td>17:32:46</td>     <th>  Log-Likelihood:    </th> <td>  397.52</td>
+  <th>Time:</th>                 <td>18:01:10</td>     <th>  Log-Likelihood:    </th> <td>  397.52</td>
 </tr>
 <tr>
   <th>No. Observations:</th>      <td>   243</td>      <th>  AIC:               </th> <td>  -789.0</td>
@@ -17101,6 +17103,7 @@ Length: 335, dtype: float64</pre>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;COVID-19 infection rate in Germany and share of COVID-19 topics in SPON corpus</span><span class="se">\n</span><span class="s1">&#39;</span>
              <span class="s1">&#39;Fitted function: y=</span><span class="si">{:.4f}{:+.4f}</span><span class="s1">x</span><span class="si">{:+.4e}</span><span class="s1">x².&#39;</span>
              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">lm_topics_cases</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;plots/covidrate_topics_germany_lm.png&#39;</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">;</span>
 </pre></div>
 
@@ -17162,6 +17165,7 @@ Length: 335, dtype: float64</pre>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;daily cases worldwide&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;share of COVID-19 related topics&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Worldwide COVID-19 infection rate and share of COVID-19 topics in SPON corpus&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;plots/covidrate_topics_world.png&#39;</span><span class="p">)</span>
 <span class="n">fig</span><span class="p">;</span>
 </pre></div>
 
