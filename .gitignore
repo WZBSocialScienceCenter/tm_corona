@@ -8,3 +8,4 @@ data/tm_final_results.pickle
 logs
 .~*
 data/corpus.pickle
+Makefile
