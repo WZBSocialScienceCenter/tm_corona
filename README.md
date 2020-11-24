@@ -8,7 +8,7 @@ This is a small project to showcase topic modeling with the [tmtoolkit Python pa
 
 ## Analysis notebook and scripts
 
-**The main analysis is done in the notebook [`tm_analysis.ipynb`](tm_analysis.html). Head over there for an application of topic models.** However, data retrieval, preparation and topic modeling is just as important and is done in the following scripts: 
+**The main analysis is done in the notebook [`tm_analysis.ipynb`](https://wzbsocialsciencecenter.github.io/tm_corona/tm_analysis.html). Head over there for an application of topic models.** However, data retrieval, preparation and topic modeling is just as important and is done in the following scripts: 
 
 1. scraping news from SPON: [`fetch_news/spon.py`](fetch_news/spon.py)
 2. text data preparation for topic modeling with *tmtoolkit*: [`prepare.py`](prepare.py)
