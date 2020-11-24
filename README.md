@@ -25,4 +25,4 @@ Simply unzip the file to the cloned repository folder. You may contact me for ac
 
 ## License
 
-Licensed under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) (except for the data from offenesparlament.de which have their own license). See `LICENSE` file. 
+Licensed under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). See `LICENSE` file. 
