@@ -9,3 +9,4 @@ logs
 .~*
 data/corpus.pickle
 Makefile
+tm_corona_data.zip
