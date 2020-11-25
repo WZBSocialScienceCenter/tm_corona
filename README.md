@@ -4,7 +4,9 @@ Markus Konrad <markus.konrad@wzb.eu>, November 2020
 
 ![COVID-19 related topics in SPON corpus over time](plots/covidtopics_time.png)
 
-This is a small project to showcase topic modeling with the [tmtoolkit Python package](https://tmtoolkit.readthedocs.io/), where I use a corpus of articles from the German online news website *[Spiegel Online (SPON)](https://www.spiegel.de/)*  to create a topic model for before and during the COVID-19 pandemic. This topic model is then used to analyze the volume of media coverage regarding the pandemic and how it changed over time. Currently, a time span from Oct. 2019 to end of Aug. 2020 is covered but I plan to give an update for a time span until end of Nov. 2020.
+This is a small project to showcase topic modeling with the [tmtoolkit Python package](https://tmtoolkit.readthedocs.io/) via [LDA](https://lda.readthedocs.io/), where I use a corpus of articles from the German online news website *[Spiegel Online (SPON)](https://www.spiegel.de/)*  to create a topic model for before and during the COVID-19 pandemic. This topic model is then used to analyze the volume of media coverage regarding the pandemic and how it changed over time. Currently, a time span from Oct. 2019 to end of Aug. 2020 is covered but I plan to give an update for a time span until end of Nov. 2020.
+
+For an introduction to topic modeling via LDA see [Introduction to Probabilistic Topic Models (Blei 2012)](https://oar.princeton.edu/jspui/bitstream/88435/pr1bv3w/1/OA_IntroductionProbabilisticTopicModels.pdf) or [Topic modeling made just simple enough (Underwoord 2012)](https://tedunderwood.com/2012/04/07/topic-modeling-made-just-simple-enough/).
 
 ## Analysis notebook and scripts
 

@@ -1,9 +1,10 @@
 """
 Topic model evaluation for parameter tuning.
 
-This uses tmtoolkit (see https://tmtoolkit.readthedocs.io/) for parallel topic model evaluation. The script accepts a
-parameter `eta` that is held constant while a set of alpha parameter values and numbers of topics varies during model
-evalation.
+This uses tmtoolkit (see https://tmtoolkit.readthedocs.io/) for parallel topic model evaluation via
+*Latent Dirichlet Allocation* (LDA) implemented in the Python lda package (https://lda.readthedocs.io/). The script
+accepts a parameter `eta` that is held constant while a set of alpha parameter values and numbers of topics varies
+during model evalation.
 
 November 2020, Markus Konrad <markus.konrad@wzb.eu>
 """
@@ -12,7 +13,7 @@ import sys
 
 from pprint import pprint
 
-from tmtoolkit.topicmod.tm_lda import AVAILABLE_METRICS, evaluate_topic_models
+from tmtoolkit.topicmod.tm_lda import AVAILABLE_METRICS, evaluate_topic_models    # we're using lda for topic modeling
 from tmtoolkit.topicmod.evaluate import results_by_parameter
 from tmtoolkit.topicmod.visualize import plot_eval_results
 from tmtoolkit.utils import unpickle_file, pickle_data

@@ -1,8 +1,10 @@
 """
-Generate final candidate topic models
+Generate final candidate topic models.
 
-This uses tmtoolkit (see https://tmtoolkit.readthedocs.io/) for parallel topic model evaluation. It evaluates and
-generates a set of candidate topic models using a set of "optimal" parameters previously found via `tm_evaluation.py`.
+This uses tmtoolkit (see https://tmtoolkit.readthedocs.io/) for parallel topic model evaluation via
+*Latent Dirichlet Allocation* (LDA) implemented in the Python lda package (https://lda.readthedocs.io/). It evaluates
+and generates a set of candidate topic models using a set of "optimal" parameters previously found via
+`tm_evaluation.py`.
 
 November 2020, Markus Konrad <markus.konrad@wzb.eu>
 """
@@ -10,7 +12,7 @@ November 2020, Markus Konrad <markus.konrad@wzb.eu>
 from pprint import pprint
 from collections import defaultdict
 
-from tmtoolkit.topicmod.tm_lda import evaluate_topic_models
+from tmtoolkit.topicmod.tm_lda import evaluate_topic_models     # we're using lda for topic modeling
 from tmtoolkit.topicmod.evaluate import results_by_parameter
 from tmtoolkit.topicmod.visualize import plot_eval_results
 from tmtoolkit.utils import unpickle_file, pickle_data
