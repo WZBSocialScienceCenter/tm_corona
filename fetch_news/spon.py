@@ -24,9 +24,9 @@ logger = logging.getLogger('spon')
 ARCHIVE_URL_FORMAT = 'https://www.spiegel.de/nachrichtenarchiv/artikel-{:02d}.{:02d}.{}.html'
 
 # start day for archive retrieval
-START_DATE = datetime(2019, 10, 1)
+START_DATE = datetime(2019, 6, 1)
 # last day for archive retrieval
-END_DATE = datetime(2020, 8, 31)
+END_DATE = datetime(2020, 11, 24)
 
 # maximum request timeout until exception is raised
 REQUEST_TIMEOUT_SEC = 15
@@ -165,16 +165,21 @@ for day in range(duration.days):
         if len(container) == 1:  # we expect a single container that holds all of this day's articles teasers
             headlines_container = container[0].select('article')
             for hcont in headlines_container:   # iterate through article teasers
-                # skip gallery, video, audio or paid content
+                # skip gallery, video, audio, paid content or ads
                 if any(len(hcont.find_all('span', attrs={'data-conditional-flag': k})) != 0
-                       for k in ('gallery', 'video', 'audio', 'paid')):
+                       for k in ('gallery', 'video', 'audio', 'paid')) or 'ANZEIGE' in hcont.text:
                     continue
 
                 # get the URL to the full article
-                url = hcont.select_one('h2 a').attrs.get('href', '')
+                title_elem = hcont.select_one('h2 a')
+                if title_elem is None:
+                    url = None
+                else:
+                    url = title_elem.attrs.get('href', '')
+
                 if url:
                     # get headline
-                    headline = hcont.select_one('h2 a').attrs.get('title', '')
+                    headline = title_elem.attrs.get('title', '')
 
                     if not headline:
                         error('>> no headline given', archive_rows, fetch_date_str)
@@ -287,6 +292,11 @@ for day, (fetch_date, day_articles) in enumerate(archive_rows.items()):
                 article = soup
             else:
                 article = soup.select_one('main article')
+
+            if article is None:
+                error('>> no valid article element found', art)
+                articles_data[fetch_date][art['url']] = art
+                continue
 
             # parse the text line above the headline and the headline itself
             topline_headline = article.select('header h2 span')
