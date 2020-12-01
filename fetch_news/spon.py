@@ -26,7 +26,7 @@ ARCHIVE_URL_FORMAT = 'https://www.spiegel.de/nachrichtenarchiv/artikel-{:02d}.{:
 # start day for archive retrieval
 START_DATE = datetime(2019, 6, 1)
 # last day for archive retrieval
-END_DATE = datetime(2020, 11, 24)
+END_DATE = datetime(2020, 11, 30)
 
 # maximum request timeout until exception is raised
 REQUEST_TIMEOUT_SEC = 15
@@ -130,7 +130,7 @@ archive_rows = load_data_from_pickle(ARCHIVE_CACHE, defaultdict(list))
 logger.info('fetching headlines and article URLs from archive')
 
 # loop through the days in the specified timespan
-for day in range(duration.days):
+for day in range(duration.days + 1):
     if abort_script:    # if interrupted by OS, break loop
         break
 
