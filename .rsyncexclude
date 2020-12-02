@@ -3,3 +3,6 @@
 .idea
 *~
 Makefile
+.ipynb_checkpoints/*
+tm_corona_data.zip
+tm_analysis.*

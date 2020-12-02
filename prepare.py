@@ -6,7 +6,7 @@ a document-term matrix, which is then used as input for topic modeling (see `tm_
 
 Note that this requires quite a large amount of computer memory to run (> 8GB).
 
-November 2020, Markus Konrad <markus.konrad@wzb.eu>
+December 2020, Markus Konrad <markus.konrad@wzb.eu>
 """
 
 import re
@@ -26,9 +26,9 @@ tmtoolkit_log.propagate = True
 #%% configuration and constants
 
 INPUT_DATA = 'fetch_news/data/spon.json'    # fetched SPON corpus raw data
-OUTPUT_DTM = 'data/dtm.pickle'              # document-term matrix output
-OUTPUT_META = 'data/meta.pickle'            # corpus metadata
-OUTPUT_CORPUS = 'data/corpus.pickle'        #
+OUTPUT_DTM = 'data/dtm_nov20.pickle'              # document-term matrix output
+OUTPUT_META = 'data/meta_nov20.pickle'            # corpus metadata
+OUTPUT_CORPUS = 'data/corpus_nov20.pickle'        #
 
 pttrn_urlend = re.compile(r'\.html?$')
 
@@ -118,7 +118,7 @@ print(f'DTM shape: {dtm.shape}')
 
 #%% store document-term matrix along with document labels and vocabulary to disk
 
-print('storing output DTM to {OUTPUT_DTM}')
+print(f'storing output DTM to {OUTPUT_DTM}')
 pickle_data((preproc.doc_labels, preproc.vocabulary, dtm), OUTPUT_DTM)
 
 print('done.')
