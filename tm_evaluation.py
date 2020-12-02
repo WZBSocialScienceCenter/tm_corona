@@ -20,9 +20,9 @@ from tmtoolkit.utils import unpickle_file, pickle_data
 
 #%% configuration and constants
 
-INPUT_DTM = 'data/dtm.pickle'
-OUTPUT_EVAL_PLOT = 'plots/tm_eval_eta%s.png'
-OUTPUT_EVAL_RESULTS = 'data/tm_eval_results_eta%s.pickle'
+INPUT_DTM = 'data/dtm_nov20.pickle'
+OUTPUT_EVAL_PLOT = 'plots/tm_eval_nov20_eta%s.png'
+OUTPUT_EVAL_RESULTS = 'data/tm_eval_results_nov20_eta%s.pickle'
 
 
 #%% handle eta parameter passed as script argument

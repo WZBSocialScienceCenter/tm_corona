@@ -13,7 +13,10 @@ import re
 import json
 import logging
 
+import numpy as np
+
 from tmtoolkit.preprocess import TMPreproc
+from tmtoolkit.bow.bow_stats import doc_lengths
 from tmtoolkit.utils import pickle_data
 
 # enable logging for tmtoolkit
@@ -28,7 +31,10 @@ tmtoolkit_log.propagate = True
 INPUT_DATA = 'fetch_news/data/spon.json'    # fetched SPON corpus raw data
 OUTPUT_DTM = 'data/dtm_nov20.pickle'              # document-term matrix output
 OUTPUT_META = 'data/meta_nov20.pickle'            # corpus metadata
-OUTPUT_CORPUS = 'data/corpus_nov20.pickle'        #
+OUTPUT_CORPUS = 'data/corpus_nov20.pickle'        # raw text corpus
+
+MIN_TOKENS_PER_DOC = 50
+MAX_TOKENS_PER_DOC = 3000
 
 pttrn_urlend = re.compile(r'\.html?$')
 
@@ -94,7 +100,7 @@ print('tokenizing documents')
 preproc = TMPreproc(corpus, language='de')
 del corpus      # remove unused objects
 
-preproc.print_summary()
+#preproc.print_summary()
 
 print('processing documents')
 
@@ -108,17 +114,25 @@ preproc.pos_tag() \
     .remove_common_tokens(df_threshold=0.95) \
     .remove_uncommon_tokens(df_threshold=0.01)
 
-preproc.print_summary()
+#preproc.print_summary()
 
 print('generating DTM')
 
 dtm = preproc.dtm
 print(f'DTM shape: {dtm.shape}')
 
+print(f'filtering DTM for range of tokens per document: {MIN_TOKENS_PER_DOC} - {MAX_TOKENS_PER_DOC}')
+dlengths = doc_lengths(dtm)
+doc_mask = (dlengths >= MIN_TOKENS_PER_DOC) & (dlengths <= MAX_TOKENS_PER_DOC)
+print(f'retaining {doc_mask.sum()} out of {dtm.shape[0]} documents')
+
 
 #%% store document-term matrix along with document labels and vocabulary to disk
 
 print(f'storing output DTM to {OUTPUT_DTM}')
-pickle_data((preproc.doc_labels, preproc.vocabulary, dtm), OUTPUT_DTM)
+pickle_data((np.array(preproc.doc_labels)[doc_mask],
+             preproc.vocabulary,
+             dtm[doc_mask, :]),
+            OUTPUT_DTM)
 
 print('done.')
